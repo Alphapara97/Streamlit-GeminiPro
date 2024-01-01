@@ -1,6 +1,6 @@
 altair
 pandas
-streamlit==1.29.0pytho
+streamlit==1.29.0
 langchain==0.0.353
 langchain-google-genai
 pypdf
