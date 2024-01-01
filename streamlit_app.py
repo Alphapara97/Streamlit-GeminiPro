@@ -8,7 +8,6 @@ __version__ = "1.0"
 
 
 
-from IPython.display import display
 import pathlib
 import textwrap
 import os
