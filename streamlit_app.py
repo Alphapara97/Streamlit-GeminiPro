@@ -1,5 +1,14 @@
+"""
+Module Name: ChatBot using Gemini and Langchain
+Author: Ansuman Sasmal
+"""
+
+__author__ = "Ansuman Sasmal"
+__version__ = "1.0"
+
+
 import google.generativeai as genai
-from IPython.display import display, Markdown
+from IPython.display import display
 import pathlib
 import textwrap
 import os
@@ -8,19 +17,18 @@ import streamlit as st
 from langchain.document_loaders import PyPDFLoader
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
-from langchain.embeddings import HuggingFaceEmbeddings, GoogleGenerativeAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import ConversationalRetrievalChain, RetrievalQA, load_qa_chain
-from langchain.vectorstores import DocArrayInMemorySearch, Chroma
+from langchain.chains import RetrievalQA
+from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import urllib
 import warnings
 from pathlib import Path as p
 from pprint import pprint
-
-import pandas as pd
-from langchain.prompts import PromptTemplate
-
+import uuid
+from langchain_google_genai import ChatGoogleGenerativeAI
+from streamlit_chat import message
 
 
 st.set_page_config(page_title="Chat with Documents", page_icon="⛓️")
@@ -28,77 +36,51 @@ st.title("Chat with Documents")
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever(uploaded_files):
-    # Read documents
-    docs = []
-    temp_dir = tempfile.TemporaryDirectory()
-    for file in uploaded_files:
-        temp_filepath = os.path.join(temp_dir.name, file.name)
-        with open(temp_filepath, "wb") as f:
-            f.write(file.getvalue())
-        loader = PyPDFLoader(temp_filepath)
-        docs.extend(loader.load())
-        
+def configure_retriever(uploaded_file, google_api_key):
+    # Generate a unique identifier for the file
+    unique_identifier = str(uuid.uuid4())
+    temp_filename = f"file_{unique_identifier}"
 
-    # Split documents
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
-    splits = text_splitter.split_documents(docs)
-      
+    temp_dir = tempfile.TemporaryDirectory()
+    temp_filepath = os.path.join(temp_dir.name, temp_filename)
+
+    with open(temp_filepath, "wb") as f:
+        f.write(uploaded_file.getvalue())
+
+    # Load document
+    loader = PyPDFLoader(temp_filepath)
+    pages = loader.load_and_split()
+
+    # Split document
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=1000)
+    context = "\n\n".join(str(p.page_content) for p in pages)
+    texts = text_splitter.split_text(context)
 
     # Create embeddings and store in vectordb and extract vector_index
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001",google_api_key=google_api_key)
-    vector_index = Chroma.from_texts(splits, embeddings).as_retriever(search_kwargs={"k":5})
-
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=google_api_key)
+    vector_index = Chroma.from_texts(texts, embeddings).as_retriever(search_kwargs={"k": 5})
 
     return vector_index
 
-class StreamHandler(BaseCallbackHandler):
-    def __init__(self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""):
-        self.container = container
-        self.text = initial_text
-        self.run_id_ignore_token = None
-
-    def on_llm_start(self, serialized: dict, prompts: list, **kwargs):
-        # Workaround to prevent showing the rephrased question as output
-        if prompts[0].startswith("Human"):
-            self.run_id_ignore_token = kwargs.get("run_id")
-
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        if self.run_id_ignore_token == kwargs.get("run_id", False):
-            return
-        self.text += token
-        self.container.markdown(self.text)
-        
-
-class PrintRetrievalHandler(BaseCallbackHandler):
-    def __init__(self, container):
-        self.status = container.status("**Context Retrieval**")
-
-    def on_retriever_start(self, serialized: dict, query: str, **kwargs):
-        self.status.write(f"**Question:** {query}")
-        self.status.update(label=f"**Context Retrieval:** {query}")
-
-    def on_retriever_end(self, documents, **kwargs):
-        for idx, doc in enumerate(documents):
-            source = os.path.basename(doc.metadata["source"])
-            self.status.write(f"**Document {idx} from {source}**")
-            self.status.markdown(doc.page_content)
-        self.status.update(state="complete")
-        
+def clear_chat():
+    del st.session_state.past[:]
+    del st.session_state.generated[:]        
         
 google_api_key = st.sidebar.text_input("Gemini API Key", type="password")
-if not openai_api_key:
+if not google_api_key:
     st.info("Please add your Gemini API key to continue.")
     st.stop()
     
-uploaded_files = st.sidebar.file_uploader(
+uploaded_file = st.sidebar.file_uploader(
     label="Upload PDF file", type=["pdf"], accept_multiple_files=False
 )
-if not uploaded_files:
-    st.info("Please upload PDF document to continue.")
+if not uploaded_file:
+    st.info("Please upload a PDF document to continue.")
     st.stop()
-    
-retriever = configure_retriever(uploaded_files)
+
+retriever = configure_retriever(uploaded_file, google_api_key)
+# Continue with the rest of your Streamlit app logic using 'retriever'...
+
 
 # Setup memory for contextual conversation
 msgs = StreamlitChatMessageHistory()
@@ -116,19 +98,19 @@ generation_config = {
 safety_settings = [
   {
     "category": "HARM_CATEGORY_HARASSMENT",
-    "threshold": "BLOCK_ONLY_HIGH"
+    "threshold": "BLOCK_NONE"
   },
   {
     "category": "HARM_CATEGORY_HATE_SPEECH",
-    "threshold": "BLOCK_ONLY_HIGH"
+    "threshold": "BLOCK_NONE"
   },
   {
     "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    "threshold": "BLOCK_ONLY_HIGH"
+    "threshold": "BLOCK_NONE"
   },
   {
     "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-    "threshold": "BLOCK_ONLY_HIGH"
+    "threshold": "BLOCK_NONE"
   },
 ]
 
@@ -141,23 +123,49 @@ model_safety_none = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=goo
 qa_chain = RetrievalQA.from_chain_type(
     model_safety_none,
     retriever=retriever,
-    return_source_documents=True,
+    return_source_documents=False,
     memory=memory, verbose=True
 )
 
 
-if len(msgs.messages) == 0 or st.sidebar.button("Clear message history"):
-    msgs.clear()
-    msgs.add_ai_message("How can I help you?")
+def conversational_chat(query):
 
-avatars = {"human": "user", "ai": "assistant"}
-for msg in msgs.messages:
-    st.chat_message(avatars[msg.type]).write(msg.content)
+    result = qa_chain(query)
+    st.session_state['history'].append((query, result["result"]))
 
-if user_query := st.chat_input(placeholder="Ask me anything!"):
-    st.chat_message("user").write(user_query)
+    return result["result"]
 
-    with st.chat_message("assistant"):
-        retrieval_handler = PrintRetrievalHandler(st.container())
-        stream_handler = StreamHandler(st.empty())
-        response = qa_chain.run(user_query, callbacks=[retrieval_handler, stream_handler])
+if 'history' not in st.session_state:
+    st.session_state['history'] = []
+
+if 'generated' not in st.session_state:
+    st.session_state['generated'] = ["Hello ! Ask me anything about " + uploaded_file.name + " 🤗"]
+
+if 'past' not in st.session_state:
+    st.session_state['past'] = ["Hey ! 👋"]
+
+#container for the chat history
+response_container = st.container()
+#container for the user's text input
+container = st.container()
+
+with container:
+    with st.form(key='my_form', clear_on_submit=True):
+
+        user_input = st.text_input("Query:", placeholder="Ask your questions regarding your document", key='input')
+        submit_button = st.form_submit_button(label='Send')
+        
+
+    if submit_button and user_input:
+        output = conversational_chat(user_input)
+
+        st.session_state['past'].append(user_input)
+        st.session_state['generated'].append(output)
+
+if st.session_state['generated']:
+    with response_container:
+        for i in range(len(st.session_state['generated'])):
+            message(st.session_state["past"][i], is_user=True, key=str(i) + '_user')
+            message(st.session_state["generated"][i], key=str(i))
+    
+    st.button("Clear message", on_click=clear_chat)

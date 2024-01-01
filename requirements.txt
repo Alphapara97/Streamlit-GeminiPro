@@ -7,3 +7,4 @@ langchain-google-genai
 pypdf
 chromadb
 google.generativeai
+streamlit-chat
