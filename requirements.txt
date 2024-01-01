@@ -4,3 +4,4 @@ chromadb
 streamlit_chat
 langchain_google_genai==0.0.5
 langchain==0.0.353
+pypdf
