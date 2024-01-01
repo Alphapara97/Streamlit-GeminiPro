@@ -163,7 +163,8 @@ with container:
 if st.session_state['generated']:
     with response_container:
         for i in range(len(st.session_state['generated'])):
-            message(st.session_state["past"][i], is_user=True, key=str(i) + '_user')
-            message(st.session_state["generated"][i], key=str(i))
+            #avatar_style check for options
+            message(st.session_state["past"][i], is_user=True, key=str(i) + '_user', avatar_style="adventurer",seed="midnight")
+            message(st.session_state["generated"][i], key=str(i), avatar_style="bottts",seed="bob")
     
     st.button("Clear message", on_click=clear_chat)

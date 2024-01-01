@@ -1,9 +1,7 @@
 altair
-pandas
 streamlit==1.29.0
-langchain==0.0.353
-
-pypdf
 chromadb
 streamlit_chat==0.1.1
 langchain_google_genai==0.0.5
+langchain==0.0.353
+pysqlite3>=3.35.0
