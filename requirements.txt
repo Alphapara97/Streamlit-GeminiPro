@@ -1,7 +1,7 @@
 altair
 pandas
 streamlit
-langchain
+langchain==0.0.353
 langchain-google-genai
 pypdf
 chromadb
