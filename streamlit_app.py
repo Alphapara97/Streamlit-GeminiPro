@@ -7,7 +7,7 @@ __author__ = "Ansuman Sasmal"
 __version__ = "1.0"
 
 
-import google.generativeai as genai
+
 from IPython.display import display
 import pathlib
 import textwrap
@@ -18,7 +18,6 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import RetrievalQA
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter

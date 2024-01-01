@@ -1,10 +1,8 @@
 altair
 pandas
 streamlit
-google-generativeai
 langchain
 langchain-google-genai
 pypdf
 chromadb
-google.generativeai
 streamlit-chat
