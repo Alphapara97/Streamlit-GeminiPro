@@ -1,6 +1,6 @@
 altair
 streamlit
-chromadb
+chromadb==0.3.29
 streamlit_chat
 langchain-google-genai==0.0.5
 langchain==0.0.353
