@@ -1,6 +1,21 @@
-# Welcome to Streamlit!
+# Streamlit Gemini Pro LLM Chatbot
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire. :heart:
+## Overview
 
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+Streamlit-based chatbot application designed to engage with users, answer questions, and provide a seamless conversational experience. It leverages Gemini Pro for reading documents and LangChain for prompt generation.
+
+## Getting Started
+
+Follow these steps to set up and run the ChatBot application locally on your machine.
+
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### Usage
+
+Run the application using the following command:
+
+```bash
+python chatbot.py
