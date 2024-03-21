@@ -33,6 +33,12 @@ st.set_page_config(page_title="Chat with Documents", page_icon="⛓️")
 st.title("Chat with Documents")
 
 
+google_api_key = st.secrets["api_key"]
+#google_api_key = st.sidebar.text_input("Gemini API Key", type="password")
+#if not google_api_key:
+#    st.info("Please add your Gemini API key to continue.")
+#    st.stop()
+
 @st.cache_resource(ttl="1h")
 def configure_retriever(uploaded_file, google_api_key):
     # Generate a unique identifier for the file
@@ -64,10 +70,7 @@ def clear_chat():
     del st.session_state.past[:]
     del st.session_state.generated[:]        
         
-google_api_key = st.sidebar.text_input("Gemini API Key", type="password")
-if not google_api_key:
-    st.info("Please add your Gemini API key to continue.")
-    st.stop()
+
     
 uploaded_file = st.sidebar.file_uploader(
     label="Upload PDF file", type=["pdf"], accept_multiple_files=False
