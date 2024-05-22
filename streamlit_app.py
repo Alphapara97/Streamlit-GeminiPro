@@ -4,7 +4,7 @@ Author: Ansuman Sasmal
 """
 
 __author__ = "Ansuman Sasmal"
-__version__ = "1.0"
+__version__ = "2.0"
 
 
 
@@ -18,7 +18,8 @@ import warnings
 from pathlib import Path as p
 from pprint import pprint
 import uuid
-from langchain_google_genai import ChatGoogleGenerativeAI
+#from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 from streamlit_chat import message
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
@@ -31,7 +32,7 @@ from langchain.document_loaders import PyPDFLoader
 
 st.set_page_config(page_title="Chat with Documents", page_icon="⛓️")
 st.title("Chat with Documents")
-
+st.text("Please enter the access key provided and upload the research papers")
 
 @st.cache_resource(ttl="1h")
 def configure_retriever(uploaded_file, google_api_key):
@@ -66,14 +67,14 @@ def clear_chat():
         
 google_api_key = st.sidebar.text_input("Gemini API Key", type="password")
 if not google_api_key:
-    st.info("Please add your Gemini API key to continue.")
+    st.info("Please add access key to continue.")
     st.stop()
     
 uploaded_file = st.sidebar.file_uploader(
     label="Upload PDF file", type=["pdf"], accept_multiple_files=False
 )
 if not uploaded_file:
-    st.info("Please upload a PDF document to continue.")
+    st.info("Please upload document to continue.")
     st.stop()
 
 retriever = configure_retriever(uploaded_file, google_api_key)
@@ -113,9 +114,11 @@ safety_settings = [
 ]
 
 
-model_safety_none = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=google_api_key,
-                             temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
+#model_safety_none = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=google_api_key,
+#                             temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
 
+model_safety_none = ChatVertexAI(model="gemini-pro",google_api_key=google_api_key,
+                             temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
 
 
 qa_chain = RetrievalQA.from_chain_type(
