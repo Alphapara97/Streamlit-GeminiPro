@@ -18,8 +18,8 @@ import warnings
 from pathlib import Path as p
 from pprint import pprint
 import uuid
-#from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+#from langchain_google_vertexai import ChatVertexAI
 from streamlit_chat import message
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
@@ -114,11 +114,11 @@ safety_settings = [
 ]
 
 
-#model_safety_none = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=google_api_key,
-#                             temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
-
-model_safety_none = ChatVertexAI(model="gemini-pro",google_api_key=google_api_key,
+model_safety_none = ChatGoogleGenerativeAI(model="gemini-pro",google_api_key=google_api_key,
                              temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
+
+#model_safety_none = ChatVertexAI(model="gemini-pro",google_api_key=google_api_key,
+#                             temperature=0.0,convert_system_message_to_human=True, safety_settings=safety_settings)
 
 
 qa_chain = RetrievalQA.from_chain_type(
