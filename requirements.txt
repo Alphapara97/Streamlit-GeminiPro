@@ -2,7 +2,8 @@ altair
 streamlit
 chromadb==0.3.29
 streamlit_chat
-langchain-google-genai==0.0.5
+#langchain-google-genai==0.0.5
+langchain_google_vertexai==1.0.3
 langchain==0.0.353
 pypdf
 chroma
