@@ -68,7 +68,7 @@ def clear_chat():
     del st.session_state.past[:]
     del st.session_state.generated[:]        
         
-google_api_key = st.sidebar.text_input("Gemini API Key", type="password")
+google_api_key = st.sidebar.text_input("Access Key", type="password")
 if not google_api_key:
     st.info("Please add access key to continue.")
     st.stop()
