@@ -33,7 +33,7 @@ from langchain.document_loaders import PyPDFLoader
 st.set_page_config(page_title="Chat with Documents", page_icon="⛓️")
 st.title("Chat with Documents")
 st.text("Please enter the access key provided* and upload the research papers")
-st.text("*: Present in the resume or you can click the github link provided below.")
+st.text("*: Present in the resume or click the below link to watch the demo of application.")
 link = '[Demo Video](https://github.com/Alphapara97/Streamlit-GeminiPro)'
 st.markdown(link, unsafe_allow_html=True)
 
